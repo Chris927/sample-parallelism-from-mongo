@@ -14,11 +14,12 @@ MongoDB.MongoClient.connect(process.env.MONGO_URL || 'mongodb://localhost/parall
     });
   }
 
-  db.collection('threads').deleteMany({}, null, function(err, result) {
+  var collectionName = 'myDocuments';
+  db.collection(collectionName).deleteMany({}, null, function(err, result) {
     if (err) throw err;
     console.log('removed all documents from "threads".');
-    db.collection('threads').insertMany(docs, function(err, docs) {
-      console.log('inserted many documents into "threads".');
+    db.collection(collectionName).insertMany(docs, function(err, docs) {
+      console.log('inserted ' + N + ' documents into ' + collectionName + '.');
       db.close();
     });
   });

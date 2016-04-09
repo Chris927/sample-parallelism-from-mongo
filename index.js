@@ -15,12 +15,14 @@ MongoDB.MongoClient.connect(process.env.MONGO_URL || 'mongodb://localhost/parall
 
   if (err) throw err;
 
-  var cursor = db.collection('threads').find({}); // use whatever query expression is needed (instead of `{}`)
+  var cursor = db.collection('myDocuments').find({}); // use whatever query expression is needed (instead of `{}`)
 
   // we need the stream interface of MongoDB
   // (http://mongodb.github.io/node-mongodb-native/2.1/api/Cursor.html#stream)
   var stream = cursor.stream();
 
+  // the transformer, implementing part of Node's stream API, which will be
+  // called for each document of the query result
   var transform = new Transform({
     // `transform` will be called for each document. Here, any async processing can happen,
     // but it's essential to call `next()` once everything is done.
@@ -31,14 +33,16 @@ MongoDB.MongoClient.connect(process.env.MONGO_URL || 'mongodb://localhost/parall
       });
     },
     flush: function(done) {
-      console.log('flush')
-      this.push(); // TODO: necessary?
+      console.log('flush'); // we know we are done now
       done();
     },
-    objectMode: true
+    objectMode: true // necessary, see https://nodejs.org/api/stream.html#stream_api_for_stream_implementors
   });
 
-  stream.pipe(parallel(transform, 100));
+  // pipe the stream (of documents) into the transformer. We use `parallel()`
+  // to ensure we handle up to N result documents in parallel (but not more).
+  var N = 100;
+  stream.pipe(parallel(transform, N));
 
   stream.on('end', function() {
     console.log('stream end');
