@@ -5,7 +5,7 @@ var crypto = require('crypto');
 MongoDB.MongoClient.connect(process.env.MONGO_URL || 'mongodb://localhost/parallel-test', function(err, db) {
   if (err) throw err;
 
-  var N = 25;
+  var N = 5000;
   var docs = [];
   for (var i = 0; i < N; i++) {
     docs.push({

@@ -5,8 +5,12 @@ var Transform = require('stream').Transform;
 var Writable = require('stream').Writable;
 var util = require('util');
 
+var numInflight = 0, numProcessed = 0;
 function doPotentiallyAsyncWork(doc, callback) {
+  console.log('numInflight', ++numInflight, 'numProcessed', numProcessed);
   setTimeout(function() {
+    --numInflight;
+    ++numProcessed;
     callback(null);
   }, 200);
 }
@@ -21,32 +25,23 @@ MongoDB.MongoClient.connect(process.env.MONGO_URL || 'mongodb://localhost/parall
   var transform = new Transform({
     transform: function(chunk, encoding, next) {
       console.log('transform', chunk);
-      var self = this;
       doPotentiallyAsyncWork(chunk, function(err) {
         console.log('processed data (simulated with a delay)', chunk);
-        self.push(chunk);
         next();
       });
     },
     flush: function(done) {
       console.log('flush')
-      this.push('done');
-      this.push();
+      this.push(); // TODO: necessary?
       done();
     },
     objectMode: true
   });
 
-  stream.pipe(transform).pipe(new Writable({
-    write: function(chunk, encoding, next) {
-      console.log('chunk', chunk);
-      next();
-    },
-    objectMode: true
-  }));
+  stream.pipe(parallel(transform, 1000));
 
   stream.on('data', function(data) {
-    console.log('got data', data);
+    // console.log('got data', data);
   });
 
   stream.on('end', function() {
