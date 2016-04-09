@@ -4,9 +4,9 @@ var Transform = require('stream').Transform;
 
 var numInflight = 0, numProcessed = 0;
 function doPotentiallyAsyncWork(doc, callback) {
-  ++numInflight;
-  setTimeout(function() {
-    console.log('numInflight', numInflight--, 'numProcessed', ++numProcessed);
+  ++numInflight; // unnecessary, just doing this to get stats on the console
+  setTimeout(function() { // simulating some (potentially async) processing
+    console.log('numInflight', numInflight--, 'numProcessed', ++numProcessed); // equally unnecessary
     callback(null); // as usual, if an error occurred, call the callback with anything truthy
   }, 200);
 }
