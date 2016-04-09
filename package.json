@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "2.0.0-rc.3",
+    "concurrent-transform": "1.0.0",
     "mongodb": "2.1.16"
   }
 }
